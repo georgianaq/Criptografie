@@ -1,0 +1,25 @@
+#include <iostream>
+using namespace std;
+
+int modulo(int k, int n) {
+    if (k < 0) k = n - ((-k) % n);
+    if (k >= n) return k % n;
+    return k;
+}
+
+int a_la_b_mod_c(int a, int b, int c) {
+    int p = 1;
+    a = modulo(a, c);
+    while (b > 0) {
+        if (b % 2)
+            p = modulo((p * a), c);
+        a = modulo((a * a), c);
+        b /= 2;
+    }
+    return p;
+}
+
+int main() {
+    cout << a_la_b_mod_c(2, 40, 105);
+    return 0;
+}
