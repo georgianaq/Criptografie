@@ -1,61 +1,91 @@
 #include <iostream>
-#include <cmath>
 #include <vector>
-#include <numeric>
+#include <cmath>
 #include <algorithm>
+#include <numeric>
 
-// Pasul 1: Verifica daca n este o putere perfecta
-bool este_putere_perfecta(int n) {
-    for (int b = 2; b * b <= n; ++b) {
-        double a = std::pow(n, 1.0 / b);
-        if (std::pow(round(a), b) == n) {
+
+int power(int base, int exp, int mod) {
+    int result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1)
+            result = (result * base) % mod;
+        exp = exp >> 1;
+        base = (base * base) % mod;
+    }
+    return result;
+}
+
+
+bool is_perfect_power(int n) {
+    for (int b = 2; b <= std::log2(n); b++) {
+        int a = std::pow(n, 1.0 / b);
+        if (std::pow(a, b) == n || std::pow(a + 1, b) == n)
             return true;
-        }
     }
     return false;
 }
 
-// Pasul 2: Gaseste cel mai mic r pentru care ordinea lui n modulo r este > log^2(n)
-int gaseste_r(int n) {
-    int logn2 = std::pow(std::log(n), 2);
-    for (int r = 2; r < n; ++r) {
-        bool ordineMare = true; // Presupunem ca ordinea este mare
-        // Aici ar trebui sa verificam ordinea lui n modulo r este > logn2
-        // Implementarea completa necesita calculul ordinului, care este complex
-        if (ordineMare) {
-            return r;
+
+int find_smallest_r(int n) {
+    int max_k = std::log2(n) * std::log2(n);
+    for (int r = 2; ; r++) {
+        bool found = true;
+        for (int k = 1; k <= max_k; k++) {
+            if (power(n, k, r) == 0 || std::gcd(n, r) != 1) {
+                found = false;
+                break;
+            }
         }
+        if (found) return r;
     }
-    return n; // fallback care nu ar trebui sa se intample
 }
 
-// Pasul 3: Verifica congruenta polinomiala
-bool verifica_congruenta(int n, int r) {
-    // Aceasta parte este complexa de implementat complet si necesita aritmetica polinomiala
-    // Vom returna true pentru scopul acestei demonstratii
+
+bool polynomial_check(int n, int r) {
+    for (int a = 1; a <= std::sqrt(r) * std::log2(n); a++) {
+        std::vector<int> lhs(r, 0), rhs(r, 0);
+        lhs[0] = rhs[0] = a % n;
+        lhs[1] = rhs[1] = 1;
+        for (int i = 1; i < n; i++) {
+            for (int j = std::min(i, r-1); j >= 0; j--) {
+                lhs[j] = (lhs[j] * a) % n;
+                if (j > 0) lhs[j] = (lhs[j] + lhs[j-1]) % n;
+            }
+        }
+        if (lhs != rhs) return false;
+    }
     return true;
 }
 
-// Testeaza primalitatea folosind Algoritmul AKS
-bool este_prim_AKS(int n) {
-    if (n == 2 || n == 3) return true;
-    if (n <= 1 || n % 2 == 0) return false;
-    if (este_putere_perfecta(n)) return false;
 
-    int r = gaseste_r(n);
-    if (!verifica_congruenta(n, r)) return false;
+bool is_prime_aks(int n) {
+    if (n == 2) return true;
+    if (n == 1 || n % 2 == 0) return false;
 
-    // Verifica pentru toate a de la 1 la sqrt(toti factorii lui phi(r)) * log(n)
-    return true;
+    if (is_perfect_power(n)) return false;
+
+    int r = find_smallest_r(n);
+    for (int a = 2; a <= std::sqrt(r) * std::log2(n); a++) {
+        if (std::gcd(a, n) > 1 && a < n)
+            return false;
+    }
+
+    if (n <= r) return true;
+
+    return polynomial_check(n, r);
 }
 
 int main() {
-    std::vector<int> numere = {2, 17, 18, 19, 31, 561};
-    for (int n : numere) {
-        if (este_prim_AKS(n))
-            std::cout << n << " este prim.\n";
-        else
-            std::cout << n << " nu este prim.\n";
-    }
+    int n;
+    std::cout << "Introduceti un numar pentru a verifica daca este prim: ";
+    std::cin >> n;
+
+    if (is_prime_aks(n))
+        std::cout << n << " este prim.\n";
+    else
+        std::cout << n << " nu este prim.\n";
+
     return 0;
 }

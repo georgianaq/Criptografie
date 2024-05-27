@@ -288,3 +288,75 @@ void spargereafina(ifstream& in, ofstream& out, char frecvent0=' ', char frecven
 	in.seekg(0);
 	criptareAfina(in, out, a, b);
 }
+int cmmdc(int a, int b)
+{
+	if(a==0||b==0)return a+b;
+	int r;
+	do{
+		r=a%b;
+		a=b;
+		b=r;
+		
+	}
+	while (r !=0);
+	return a;
+}
+
+int a_la_b_mod_c(int a, int b, int c)
+{
+int p = 1;
+a =modulo(a,c);
+while (b > 0)
+{
+if (b % 2)
+p = modulo((p*a) , c);
+a = modulo((a*a), c);
+b /= 2;
+}
+return p;
+}
+
+bool test_Fermat(int n, int nr_incercari){
+if (n == 2) return 1;
+if (n % 2 == 0) return 0;
+for (; nr_incercari>0; nr_incercari--){
+int b = rand();
+b = 2 + b % (n - 2);
+if (cmmdc(b, n) != 1) return 0;
+if (a_la_b_mod_c(b, n - 1, n) != 1) return 0;
+}
+return 1;
+}
+
+int da_prim(int min, int max, int nr)
+{
+	if (min>max) return -1;
+	if (min==max)
+		if (prim(min))
+			return min;
+		else 
+			return -1;
+	int nrAleator = rand()%(max-min);
+	for (int p=min+nrAleator;p<max;p++)
+	{
+		if(test_Fermat(p,3))
+		{
+			if (prim(p))
+				return p;
+			else
+				p++;
+				cout<<p<<endl;
+		}
+	}
+	for (int p=min; p<max; p++)
+	{
+		if(test_Fermat(p,3))
+		{
+			if (prim(p))
+				return p;
+			else
+				p++;
+		}
+	}
+}
+
